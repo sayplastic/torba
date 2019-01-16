@@ -206,7 +206,8 @@ class SPVNode:
         }
         # TODO: don't use os.environ
         os.environ.update(conf)
-        self.server = Server(Env(self.coin_class))
+        # Env class uses HOST env variable, not TCP_HOST, so we have to provide it manually
+        self.server = Server(Env(self.coin_class, hard_overrides={'HOST': self.hostname}))
         self.server.mempool.refresh_secs = self.server.bp.prefetcher.polling_delay = 0.5
         await self.server.start()
 

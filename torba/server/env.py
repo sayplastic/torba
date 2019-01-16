@@ -28,7 +28,8 @@ class Env:
     class Error(Exception):
         pass
 
-    def __init__(self, coin=None):
+    def __init__(self, coin=None, hard_overrides=None):
+        self.hard_overrides = hard_overrides or {}
         self.logger = class_logger(__name__, self.__class__.__name__)
         self.allow_root = self.boolean('ALLOW_ROOT', False)
         self.host = self.default('HOST', 'localhost')
@@ -46,7 +47,6 @@ class Env:
             network = self.default('NET', 'mainnet').strip()
             self.coin = Coin.lookup_coin_class(coin_name, network)
         self.cache_MB = self.integer('CACHE_MB', 1200)
-        self.host = self.default('HOST', 'localhost')
         self.reorg_limit = self.integer('REORG_LIMIT', self.coin.REORG_LIMIT)
         # Server stuff
         self.tcp_port = self.integer('TCP_PORT', None)
@@ -84,14 +84,14 @@ class Env:
                            for identity in (clearnet_identity, tor_identity)
                            if identity is not None]
 
-    @classmethod
-    def default(cls, envvar, default):
+    def default(self, envvar, default):
+        if envvar in self.hard_overrides:
+            return self.hard_overrides[envvar]
         return environ.get(envvar, default)
 
-    @classmethod
-    def boolean(cls, envvar, default):
+    def boolean(self, envvar, default):
         default = 'Yes' if default else ''
-        return bool(cls.default(envvar, default).strip())
+        return bool(self.default(envvar, default).strip())
 
     @classmethod
     def required(cls, envvar):

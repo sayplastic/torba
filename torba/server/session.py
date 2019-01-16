@@ -147,6 +147,7 @@ class SessionManager:
             protocol_class = self.env.coin.SESSIONCLS
         protocol_factory = partial(protocol_class, self, self.db,
                                    self.mempool, self.peer_mgr, kind)
+        self.logger.info(f'starting server {kind} {args}')
         server = loop.create_server(protocol_factory, *args, **kw_args)
 
         host, port = args[:2]
